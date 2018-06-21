@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+
+<script
+	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.4/angular.js"></script>
+
+<title>Pagination for phone number generation</title>
+
+
+<script type="text/javascript">
+	var app = angular.module("phoneApp", []);
+
+	app.controller(
+					"phoneController",
+					function($scope, $http) {
+
+						$scope.numberOfPages = function() {
+							return Math.ceil($scope.datalists.length
+									/ $scope.pageSize);
+						};
+
+						$scope.submitCountry = function() {
+
+							$scope.curPage = 0;
+							$scope.pageSize = 10;
+
+							alert("Coming here..........");
+							alert(angular.toJson($scope.form));
+							var method = "";
+							var url = "";
+							if ($scope.form == "" || $scope.form == null
+									|| $scope.form.number.length == 0) {
+								$scope.errorMessage = "Please enter the phone number";
+
+							} else {
+								method = "GET";
+								url = 'http://localhost:8080/RESTfulExample/rest/phoneNumber/gen/'
+										+ $scope.form.number;
+
+								$http({
+									method : method,
+									url : url
+								}).then(_success, _error);
+							}
+
+						};
+
+						function _success(response) {
+							//alert("success" + response.data);
+							$scope.datalists = response.data;
+							_clearFormData()
+						}
+
+						function _error(response) {
+							$scope.errorMessage = "Error in Generating Numbers";
+							console.log(response.statusText);
+						}
+
+						//Clear the form
+						function clearFormData() {
+							$scope.form.number = "";
+						}
+						;
+
+					});
+
+	angular.module('phoneApp').filter('pagination', function() {
+		return function(inputt, start) {
+			//alert("input" + inputt);
+			//alert("start" + start);
+			start = +start;
+			return inputt.slice(start);
+		};
+	});
+</script>
+</head>
+<body ng-app="phoneApp" ng-controller="phoneController">
+	<div class="container" style="padding: 10px 20px;">
+		<h2>
+			Phone number generation
+			</h1>
+
+			<div ng-if="errorMessage" class="alert alert-success">
+				<strong>{{ errorMessage }}</strong>
+			</div>
+
+
+
+			<form ng-submit="submitCountry()">
+				<table>
+					<p>
+						Phone Number : <input type="text" name="" ng-model="form.number" />
+					</p>
+
+					<tr>
+						<td colspan="2"><input type="submit" value="Generate Numbers"
+							class="blue-button" /></td>
+					</tr>
+				</table>
+			</form>
+
+
+			<ul class="pagination-sm">
+				<span><b></br>Phone Number</b></span>
+				<li
+					ng-repeat="datalist in datalists | pagination: curPage * pageSize | limitTo: pageSize">
+					<div>
+						<span>{{ datalist }}</span>
+					</div>
+				</li>
+			</ul>
+
+			<div class="pagination pagination-centered"
+				ng-show="datalists.length">
+				<ul class="pagination-controle pagination">
+					<li>
+						<button type="button" class="btn btn-primary"
+							ng-disabled="curPage == 0" ng-click="curPage=curPage-1">
+							&lt; PREV</button>
+					</li>
+					<li><span>Page {{curPage + 1}} of {{ numberOfPages() }}</span></li>
+					<li>
+						<button type="button" class="btn btn-primary"
+							ng-disabled="curPage >= datalists.length/pageSize - 1"
+							ng-click="curPage = curPage+1">NEXT &gt;</button>
+					</li>
+				</ul>
+
+			</div>
+	</div>
+
+</body>
+</html>
